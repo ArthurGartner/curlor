@@ -1,0 +1,10 @@
+{
+  "name": "curlor",
+  "version": "1.0.0",
+  "description": "Visualize hexadecimal, rgb, and rgba colors within your current browser window.",
+  "manifest_version": 3,
+  "author": "Arthur Gartner",
+  "action": {
+    "default_popup": "popup/popup.html"
+  }
+}
