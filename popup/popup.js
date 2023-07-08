@@ -2,17 +2,12 @@ const options = ["color", "background", "hover"];
 
 document.addEventListener("DOMContentLoaded", function () {
   const switches = document.querySelectorAll(".switch");
-  //   switches.forEach((switchElement) => {
-  //     switchElement.classList.add("no-animation"); // disable animations
-  //   });
-
   const promises = options.map(
     (option) =>
       new Promise((resolve) => {
         document.getElementById(option).addEventListener("click", function () {
           var toggleState = this.checked;
           chrome.storage.local.set({ [option]: toggleState });
-          console.log(toggleState);
         });
 
         chrome.storage.local.get([option], function (data) {
