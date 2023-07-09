@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         chrome.storage.local.get([option], function (data) {
           document.getElementById(option).checked = data[option] || false;
-          console.log(option);
           resolve(); // resolve the promise when done
         });
       })
