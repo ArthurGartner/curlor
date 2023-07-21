@@ -88,12 +88,23 @@ input:checked + .slider:before {
   font-size: 0.8rem;
   font-weight: 600;
   color: #3c3c43;
+  text-align: center;
 }
 
 .toggle-container {
   height: 2rem;
   display: flex;
   align-items: center;
+}
+
+.hover-check {
+  display: flex;
+  align-items: center;
+  margin-left: 0px;
+}
+
+.hover-checkbox {
+  margin-left: 0px;
 }
 
 @media (prefers-color-scheme: dark) {

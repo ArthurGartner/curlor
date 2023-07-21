@@ -1,5 +1,6 @@
 function replaceVisibleHexValues() {
-  const hexPattern = /#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\b/g;
+  const hexPattern =
+    /#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\b|(rgb\s*)?\(?\s*(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\s*,\s*(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\s*,\s*(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\s*\)?/g;
   function traverse(node) {
     const nodeType = node.nodeType;
 
@@ -8,12 +9,24 @@ function replaceVisibleHexValues() {
       if (matches) {
         const spanTag = document.createElement("span");
         chrome.storage.local.get(["background"]).then((value) => {
-          if (value.background) spanTag.style.backgroundColor = matches[0];
-          else spanTag.style.backgroundColor = "white";
+          if (value.background) {
+            chrome.storage.local.get(["backgroundHover"]).then((hoverValue) => {
+              if (hoverValue.backgroundHover) {
+                removeBackgroundColor(spanTag);
+                addBackgroundColorOnHover(spanTag, matches[0]);
+              } else addBackgroundColor(spanTag, matches[0]);
+            });
+          } else removeBackgroundColor(spanTag);
         });
         chrome.storage.local.get(["color"]).then((value) => {
-          if (value.color) spanTag.style.color = matches[0];
-          else spanTag.style.color = "black";
+          if (value.color) {
+            chrome.storage.local.get(["colorHover"]).then((hoverValue) => {
+              if (hoverValue.colorHover) {
+                removeTextColor(spanTag);
+                addTextColorOnHover(spanTag, matches[0]);
+              } else addTextColor(spanTag, matches[0]);
+            });
+          } else removeTextColor(spanTag);
         });
         spanTag.textContent = matches[0];
         node.parentNode.replaceChild(spanTag, node);
@@ -35,9 +48,44 @@ function replaceVisibleHexValues() {
   traverse(document.body);
 }
 
+function addTextColor(element, color) {
+  element.style.color = color;
+}
+
+function removeTextColor(element) {
+  element.style.color = "black";
+}
+
+function addBackgroundColor(element, color) {
+  element.style.backgroundColor = color;
+}
+
+function removeBackgroundColor(element) {
+  element.style.backgroundColor = "white";
+}
+
+function addBackgroundColorOnHover(element, color) {
+  element.addEventListener("mouseenter", function () {
+    this.style.backgroundColor = color;
+  });
+  element.addEventListener("mouseleave", function () {
+    this.style.backgroundColor = "white";
+  });
+}
+
+function addTextColorOnHover(element, color) {
+  element.addEventListener("mouseenter", function () {
+    this.style.color = color;
+  });
+  element.addEventListener("mouseleave", function () {
+    this.style.color = "black";
+  });
+}
+
+function removeOnHover(element, color) {}
+
 chrome.storage.onChanged.addListener(function (changes, namespace) {
   replaceVisibleHexValues();
-  console.log("RAN");
 });
 
 replaceVisibleHexValues();

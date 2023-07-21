@@ -1,4 +1,4 @@
-const options = ["color", "background", "hover"];
+const options = ["color", "background", "colorHover", "backgroundHover"];
 
 document.addEventListener("DOMContentLoaded", function () {
   const switches = document.querySelectorAll(".switch");
@@ -25,3 +25,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 500);
   });
 });
+
+chrome.storage.onChanged.addListener(function (changes, namespace) {
+  chrome.storage.local.get(["color"]).then((value) => {
+    const colorCheckbox = document.getElementById("colorHover");
+    if (value.color) enableCheckbox(colorCheckbox);
+    else disableCheckbox(colorCheckbox);
+  });
+
+  chrome.storage.local.get(["background"]).then((value) => {
+    const backgroundCheckbox = document.getElementById("backgroundHover");
+    if (value.background) enableCheckbox(backgroundCheckbox);
+    else disableCheckbox(backgroundCheckbox);
+  });
+});
+
+function disableCheckbox(element) {
+  element.disabled = true;
+}
+
+function enableCheckbox(element) {
+  element.disabled = false;
+}
