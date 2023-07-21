@@ -1,7 +1,10 @@
 {
   "name": "curlor",
   "version": "1.0.0",
-  "description": "Visualize hexadecimal, rgb, and rgba colors within your current browser window.",
+  "description": "Color from your Cursor. Curlor helps you quickly visual hexadecimal, rgb and hsl color values right within your browser window. Automatically change the value text color, background color or both to the corresponding color.",
+  "icons": {
+    "16": "./icons/curlor16.png"
+  },
   "manifest_version": 3,
   "author": "Arthur Gartner",
   "action": {
