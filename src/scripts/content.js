@@ -61,7 +61,8 @@ function replaceVisibleColorValues() {
             spanTag.textContent = matches[0];
 
             // Insert newly created span tag
-            node.parentNode.replaceChild(spanTag, node);
+            if (node.parentNode != null)
+              node.parentNode.replaceChild(spanTag, node);
           }
         });
       }
