@@ -1,14 +1,16 @@
-function replaceVisibleHexValues() {
-  const hexrgbPattern =
+// Function to manipulate DOM
+function replaceVisibleColorValues() {
+  const hexrgbhslPattern =
     /#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\b|(rgb|hsl)\s*\(?\s*(\d{1,3})\s*,\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*\)?/g;
+  // Traverse DOM structure to find matches
   function traverse(node) {
     const nodeType = node.nodeType;
 
+    // Ensure node is proper type
     if (nodeType === Node.TEXT_NODE) {
-      const matches = node.nodeValue.match(hexrgbPattern);
+      const matches = node.nodeValue.match(hexrgbhslPattern);
       if (matches) {
-        // First, let's check if the matched node's parent is a span with class "curlor"
-        // If it is, we remove the span and insert its content directly into the grandparent node.
+        // Check if previously added span exists, if so remove
         if (
           node.parentNode.tagName === "SPAN" &&
           node.parentNode.classList.contains("curlor")
@@ -18,11 +20,13 @@ function replaceVisibleHexValues() {
           node = textNode; // Update node reference for further processing
         }
 
+        // Assign match to color value
         var color = matches[0];
 
+        //If hsl value then conversion to hex necessary
         if (isHSL(color)) color = convertHSLToHex(color);
 
-        // Now fetch both 'background' and 'color' values in parallel
+        // Fetch both 'background' and 'color' values in parallel
         Promise.all([
           chrome.storage.local.get(["background"]),
           chrome.storage.local.get(["color"]),
@@ -53,7 +57,10 @@ function replaceVisibleHexValues() {
               });
             }
 
+            // Add the text value to the span tag
             spanTag.textContent = matches[0];
+
+            // Insert newly created span tag
             node.parentNode.replaceChild(spanTag, node);
           }
         });
@@ -63,6 +70,7 @@ function replaceVisibleHexValues() {
       const isHidden =
         style.visibility === "hidden" || style.display === "none";
 
+      // Continue traversal if visible
       if (!isHidden) {
         const childNodes = Array.from(node.childNodes);
         for (const childNode of childNodes) {
@@ -72,6 +80,7 @@ function replaceVisibleHexValues() {
     }
   }
 
+  // Start traversal at top
   traverse(document.body);
 }
 
@@ -79,16 +88,8 @@ function addTextColor(element, color) {
   element.style.color = color;
 }
 
-function removeTextColor(element) {
-  element.style.color = "black";
-}
-
 function addBackgroundColor(element, color) {
   element.style.backgroundColor = color;
-}
-
-function removeBackgroundColor(element) {
-  element.style.backgroundColor = "white";
 }
 
 function addBackgroundColorOnHover(element, color) {
@@ -116,10 +117,9 @@ function addTextColorOnHover(element, color) {
   });
 }
 
-function removeOnHover(element, color) {}
-
+// Update DOM for every chrome storage update
 chrome.storage.onChanged.addListener(function (changes, namespace) {
-  replaceVisibleHexValues();
+  replaceVisibleColorValues();
 });
 
 function hslToRgb(h, s, l) {
@@ -147,6 +147,7 @@ function hslToRgb(h, s, l) {
   return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
 
+// Convert rgb to hex
 function rgbToHex(r, g, b) {
   return (
     "#" +
@@ -154,6 +155,7 @@ function rgbToHex(r, g, b) {
   );
 }
 
+// Convert hsl to hex value
 function convertHSLToHex(str) {
   const regex =
     /hsl\s*\(?\s*(\d{1,3})\s*,\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*\)?/i;
@@ -171,10 +173,12 @@ function convertHSLToHex(str) {
   return null; // Return null if no HSL value found in the string
 }
 
+// Boolean check for string as hsl value
 function isHSL(str) {
   const regex =
     /^hsl\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3}%)\s*,\s*(\d{1,3}%)\s*\)$/i;
   return regex.test(str);
 }
 
-replaceVisibleHexValues();
+// Main function run
+replaceVisibleColorValues();

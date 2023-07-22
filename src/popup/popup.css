@@ -71,10 +71,6 @@ input:checked + .slider:before {
   align-items: center;
 }
 
-.title {
-  margin: 0;
-}
-
 .label-container {
   display: flex;
   flex-direction: column;
@@ -95,16 +91,8 @@ input:checked + .slider:before {
   align-items: center;
 }
 
-label {
-  cursor: pointer;
-}
-
 .checkbox-desc {
   margin-left: 5px;
-}
-
-input {
-  cursor: pointer;
 }
 
 .hover-check {
