@@ -142,7 +142,17 @@ function addTextColorOnHover(element, color) {
 
 // Update DOM for every chrome storage update
 chrome.storage.onChanged.addListener(function (changes, namespace) {
-  replaceVisibleColorValues();
+  for (let key in changes) {
+    if (
+      key === "background" ||
+      key === "color" ||
+      key === "backgroundHover" ||
+      key === "colorHover"
+    ) {
+      replaceVisibleColorValues();
+      break; // Once we know one of the keys changed, exit loop
+    }
+  }
 });
 
 function hslToRgb(h, s, l) {
@@ -203,5 +213,9 @@ function isHSL(str) {
   return regex.test(str);
 }
 
-// Main function run
-replaceVisibleColorValues();
+function onEveryPageLoad() {
+  // // Main function run
+  replaceVisibleColorValues();
+}
+
+window.addEventListener("load", onEveryPageLoad);
