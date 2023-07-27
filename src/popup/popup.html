@@ -1,64 +1,90 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="popup.css" />
+    <script src="popup.js"></script>
   </head>
   <body class="no-animation">
     <div class="popup-container">
-      <img src="../icons/curlor_logo.png" />
-      <div class="option-container">
-        <div class="toggle-container">
-          <label class="switch">
-            <input type="checkbox" id="color" />
-            <span class="slider round"></span>
-          </label>
+      <div id="main-content">
+        <div class="header">
+          <img src="../icons/curlor_logo.png" />
+          <button id="btn-show-whitelist" class="btn">Site Whitelist</button>
         </div>
-        <div class="label-container">
-          <label class="label-desc" for="color">Change text color</label>
-          <p class="desc">
-            Values will appear like this
-            <span style="color: #bf5af2">#bf5af2</span> and
-            <span style="color: #ff375f">rgb(255, 55, 95)</span>
-          </p>
-          <div class="hover-check">
-            <input type="checkbox" class="hover-checkbox" id="colorHover" />
-            <label for="colorHover"
-              ><p class="desc checkbox-desc">
-                Only display on cursor hover
-              </p></label
+        <div class="option-container">
+          <div class="toggle-container">
+            <label class="switch">
+              <input type="checkbox" id="color" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="label-container">
+            <label class="label-desc" for="color">Change text color</label>
+            <p class="desc">
+              Values will appear like this
+              <span style="color: #bf5af2">#bf5af2</span> and
+              <span style="color: #ff375f">rgb(255, 55, 95)</span>
+            </p>
+            <div class="hover-check">
+              <input type="checkbox" class="hover-checkbox" id="colorHover" />
+              <label for="colorHover"
+                ><p class="desc checkbox-desc">
+                  Only display on cursor hover
+                </p></label
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="option-container">
+          <div class="toggle-container">
+            <label class="switch">
+              <input type="checkbox" id="background" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="label-container">
+            <label class="label-desc" for="background"
+              >Change text background color</label
             >
+            <p class="desc">
+              Values will appear like this
+              <span style="background-color: #0a84ff">rgb(10, 132, 255)</span>
+              and
+              <span style="background-color: #ff9d0a">#ff9d0a</span>
+            </p>
+            <div class="hover-check">
+              <input
+                type="checkbox"
+                class="hover-checkbox"
+                id="backgroundHover"
+              />
+              <label for="backgroundHover"
+                ><p class="desc checkbox-desc">
+                  Only display on cursor hover
+                </p></label
+              >
+            </div>
           </div>
         </div>
       </div>
-
-      <div class="option-container">
-        <div class="toggle-container">
-          <label class="switch">
-            <input type="checkbox" id="background" />
-            <span class="slider round"></span>
-          </label>
+      <div id="whitelist" class="hide">
+        <div class="header">
+          <button id="btn-return" class="btn">&lt</button>
         </div>
-        <div class="label-container">
-          <label class="label-desc" for="background"
-            >Change text background color</label
-          >
-          <p class="desc">
-            Values will appear like this
-            <span style="background-color: #0a84ff">rgb(10, 132, 255)</span> and
-            <span style="background-color: #ff9d0a">#ff9d0a</span>
-          </p>
-          <div class="hover-check">
-            <input
-              type="checkbox"
-              class="hover-checkbox"
-              id="backgroundHover"
-            />
-            <label for="backgroundHover"
-              ><p class="desc checkbox-desc">
-                Only display on cursor hover
-              </p></label
-            >
+        <div>
+          <div class="domain-input-area">
+            <input type="text" id="domainInput" value="Enter a domain here" />
+            <button class="btn add-domain-btn">Add</button>
           </div>
+          <h3>Whitelisted Sites</h3>
+          <ul id="whitelistedSitesList"></ul>
         </div>
       </div>
     </div>

@@ -1,7 +1,68 @@
+// Function to check if the element should be processed
+function shouldProcessElement(element) {
+  // Ensure element exists and is an ELEMENT_NODE
+  if (!element || element.nodeType !== Node.ELEMENT_NODE) return false;
+
+  const tagName = element.tagName.toLowerCase();
+  const avoidTags = [
+    "script",
+    "style",
+    "noscript",
+    "iframe",
+    "canvas",
+    "svg",
+    "audio",
+    "video",
+    "source",
+    "track",
+    "embed",
+    "object",
+    "picture",
+    "map",
+    "area",
+    "param",
+    "button",
+    "select",
+    "datalist",
+    "optgroup",
+    "option",
+    "textarea",
+    "keygen",
+    "output",
+    "progress",
+    "meter",
+  ];
+
+  if (avoidTags.includes(tagName)) return false;
+
+  const style = window.getComputedStyle(element);
+  const isHidden = style.visibility === "hidden" || style.display === "none";
+  return !isHidden;
+}
+
+function getDomainFromUrl(url) {
+  const urlObject = new URL(url);
+  return urlObject.hostname;
+}
+
+function runExtension() {
+  const currentDomain = getDomainFromUrl(window.location.href);
+
+  chrome.storage.local.get("whitelistedSites", function (result) {
+    const whitelistedSites = result.whitelistedSites || [];
+
+    // Check if current domain is not in the whitelist
+    if (!whitelistedSites.includes(currentDomain)) {
+      replaceVisibleColorValues();
+    }
+  });
+}
+
 // Function to manipulate DOM
 function replaceVisibleColorValues() {
   const hexrgbhslPattern =
     /#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\b|(rgb|hsl)\s*\(?\s*(\d{1,3})\s*,\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*\)?/g;
+
   // Traverse DOM structure to find matches
   function traverse(rootNode) {
     const nodesToProcess = [rootNode];
@@ -23,68 +84,77 @@ function replaceVisibleColorValues() {
       while (nodesToProcess.length) {
         const node = nodesToProcess.shift();
         const nodeType = node.nodeType;
-
         if (nodeType === Node.TEXT_NODE) {
-          let content = node.nodeValue;
-          let offset = 0;
-          let match;
+          const parentStyle = window.getComputedStyle(node.parentElement);
+          const isParentVisible =
+            parentStyle &&
+            parentStyle.visibility !== "hidden" &&
+            parentStyle.display !== "none";
 
-          while ((match = hexrgbhslPattern.exec(content)) !== null) {
-            var color = match[0];
+          if (isParentVisible) {
+            let content = node.nodeValue;
+            let offset = 0;
+            let match;
 
-            if (isHSL(color)) {
-              color = convertHSLToHex(color);
+            while ((match = hexrgbhslPattern.exec(content)) !== null) {
+              var color = match[0];
+
+              if (isHSL(color)) {
+                color = convertHSLToHex(color);
+              }
+
+              const spanTag = document.createElement("span");
+              spanTag.className = "curlor";
+              spanTag.textContent = color;
+
+              const matchStart = match.index;
+              const matchEnd = match.index + match[0].length;
+
+              if (matchStart > offset) {
+                node.parentNode.insertBefore(
+                  document.createTextNode(
+                    content.substring(offset, matchStart)
+                  ),
+                  node
+                );
+              }
+
+              if (backgroundValue.background || colorValue.color) {
+                if (backgroundValue.background) {
+                  if (backgroundHoverValue.backgroundHover)
+                    addBackgroundColorOnHover(spanTag, color);
+                  else addBackgroundColor(spanTag, color);
+                }
+
+                if (colorValue.color) {
+                  if (colorHoverValue.colorHover)
+                    addTextColorOnHover(spanTag, color);
+                  else addTextColor(spanTag, color);
+                }
+
+                node.parentNode.insertBefore(spanTag, node);
+              } else {
+                // If no color or background applied, just insert the text without the span
+                node.parentNode.insertBefore(
+                  document.createTextNode(color),
+                  node
+                );
+              }
+
+              offset = matchEnd;
             }
 
-            const spanTag = document.createElement("span");
-            spanTag.className = "curlor";
-            spanTag.textContent = color;
-
-            const matchStart = match.index;
-            const matchEnd = match.index + match[0].length;
-
-            if (matchStart > offset) {
+            if (offset < content.length) {
               node.parentNode.insertBefore(
-                document.createTextNode(content.substring(offset, matchStart)),
+                document.createTextNode(content.substring(offset)),
                 node
               );
             }
 
-            if (backgroundValue.background || colorValue.color) {
-              if (backgroundValue.background) {
-                if (backgroundHoverValue.backgroundHover)
-                  addBackgroundColorOnHover(spanTag, color);
-                else addBackgroundColor(spanTag, color);
-              }
-
-              if (colorValue.color) {
-                if (colorHoverValue.colorHover)
-                  addTextColorOnHover(spanTag, color);
-                else addTextColor(spanTag, color);
-              }
-
-              node.parentNode.insertBefore(spanTag, node);
-            } else {
-              // If no color or background applied, just insert the text without the span
-              node.parentNode.insertBefore(
-                document.createTextNode(color),
-                node
-              );
-            }
-
-            offset = matchEnd;
+            node.parentNode.removeChild(node);
           }
-
-          if (offset < content.length) {
-            node.parentNode.insertBefore(
-              document.createTextNode(content.substring(offset)),
-              node
-            );
-          }
-
-          node.parentNode.removeChild(node);
         } else if (nodeType === Node.ELEMENT_NODE) {
-          // For toggling off, we should check if the element is a `span.curlor` and replace it with its text content
+          // Your existing code to handle Element Nodes
           if (node.tagName === "SPAN" && node.classList.contains("curlor")) {
             const textNode = document.createTextNode(node.textContent);
             node.parentNode.replaceChild(textNode, node);
@@ -95,7 +165,13 @@ function replaceVisibleColorValues() {
               style.visibility === "hidden" || style.display === "none";
 
             if (!isHidden) {
-              nodesToProcess.push(...node.childNodes);
+              const childNodes = [...node.childNodes].filter((child) => {
+                return (
+                  child.nodeType === Node.TEXT_NODE ||
+                  shouldProcessElement(child)
+                );
+              });
+              nodesToProcess.push(...childNodes);
             }
           }
         }
@@ -103,8 +179,10 @@ function replaceVisibleColorValues() {
     });
   }
 
-  // Start traversal at top
-  traverse(document.body);
+  // Start traversal at top, but only if it should be processed
+  if (shouldProcessElement(document.body)) {
+    traverse(document.body);
+  }
 }
 
 function addTextColor(element, color) {
@@ -149,7 +227,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
       key === "backgroundHover" ||
       key === "colorHover"
     ) {
-      replaceVisibleColorValues();
+      runExtension();
       break; // Once we know one of the keys changed, exit loop
     }
   }
@@ -213,9 +291,9 @@ function isHSL(str) {
   return regex.test(str);
 }
 
+// On every page load
 function onEveryPageLoad() {
-  // // Main function run
-  replaceVisibleColorValues();
+  runExtension();
 }
 
 window.addEventListener("load", onEveryPageLoad);

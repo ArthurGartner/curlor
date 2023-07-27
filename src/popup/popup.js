@@ -1,5 +1,4 @@
-//Setup the options, each option correlates to an element id for the popup html
-const options = ["color", "background", "colorHover", "backgroundHover"];
+var options = ["color", "background", "colorHover", "backgroundHover"];
 
 document.addEventListener("DOMContentLoaded", function () {
   const switches = document.querySelectorAll(".switch");
@@ -32,6 +31,74 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }, 500);
   });
+
+  const domainInput = document.getElementById("domainInput");
+
+  // Set the placeholder value
+  domainInput.placeholder = "Enter a domain here";
+
+  // Get the current domain and populate the input
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    const url = new URL(tabs[0].url);
+    const domain = url.hostname;
+
+    if (domain) {
+      domainInput.value = domain;
+    } else {
+      domainInput.value = "";
+    }
+  });
+
+  // Clear the placeholder text when input is focused
+  domainInput.addEventListener("focus", function () {
+    if (domainInput.value === "Enter a domain here") {
+      domainInput.value = "";
+    }
+  });
+
+  // Reset the placeholder text if the input is empty on blur
+  domainInput.addEventListener("blur", function () {
+    if (!domainInput.value.trim()) {
+      domainInput.value = "Enter a domain here";
+    }
+  });
+
+  var returnButton = document.getElementById("btn-return");
+  returnButton.addEventListener("click", function () {
+    hideWhitelist();
+  });
+
+  var whitelistButton = document.getElementById("btn-show-whitelist");
+  whitelistButton.addEventListener("click", function () {
+    showWhitelist();
+  });
+
+  const addButton = document.querySelector(".add-domain-btn");
+
+  addButton.addEventListener("click", function () {
+    const domain = domainInput.value;
+
+    // Ensure the domain is not an empty string before proceeding
+    if (domain.trim() === "") return;
+
+    // Get the current list of whitelisted sites
+    chrome.storage.local.get("whitelistedSites", function (result) {
+      let sites = result.whitelistedSites || [];
+
+      // Add the domain to the list if it's not already there
+      if (sites.indexOf(domain) === -1) {
+        sites.push(domain);
+      }
+
+      // Save the updated list back to Chrome's storage
+      chrome.storage.local.set({ whitelistedSites: sites }, function () {
+        // Clear the input box
+        domainInput.value = "";
+      });
+
+      loadWhitelistedSites();
+    });
+  });
 });
 
 //Re-evaluate state of toggle upon local storage change
@@ -57,4 +124,73 @@ function disableCheckbox(element) {
 // Enable checkbox, used for when parent switch is on
 function enableCheckbox(element) {
   element.disabled = false;
+}
+
+function showWhitelist() {
+  const main = document.getElementById("main-content");
+  const whitelist = document.getElementById("whitelist");
+  loadWhitelistedSites();
+
+  main.classList.add("hide");
+  main.classList.add("hide");
+  whitelist.classList.remove("hide");
+}
+
+function hideWhitelist() {
+  const main = document.getElementById("main-content");
+  const whitelist = document.getElementById("whitelist");
+
+  whitelist.classList.add("hide");
+  main.classList.remove("hide");
+}
+
+function loadWhitelistedSites() {
+  chrome.storage.local.get("whitelistedSites", function (result) {
+    chrome.storage.local.get("whitelistedSites", function (result) {
+      let sites = result.whitelistedSites || [];
+      const listContainer = document.getElementById("whitelistedSitesList");
+
+      // Clear any existing items first
+      listContainer.innerHTML = "";
+
+      sites.forEach((site) => {
+        const listItem = document.createElement("li");
+
+        // Create domain text node
+        const domainTextNode = document.createTextNode(site);
+        listItem.appendChild(domainTextNode);
+
+        // Create remove button
+        const removeButton = document.createElement("button");
+        removeButton.textContent = "Remove";
+        removeButton.addEventListener("click", function () {
+          // Remove the site from the storage and refresh the list
+          removeSiteFromWhitelist(site);
+        });
+        removeButton.classList.add("btn");
+        removeButton.classList.add("remove-btn");
+
+        listItem.appendChild(removeButton);
+        listContainer.appendChild(listItem);
+      });
+    });
+  });
+}
+
+function removeSiteFromWhitelist(site) {
+  chrome.storage.local.get("whitelistedSites", function (result) {
+    let sites = result.whitelistedSites || [];
+
+    // Remove the site from the array
+    const index = sites.indexOf(site);
+    if (index > -1) {
+      sites.splice(index, 1);
+    }
+
+    // Update the storage with the modified list
+    chrome.storage.local.set({ whitelistedSites: sites }, function () {
+      // Refresh the list
+      loadWhitelistedSites();
+    });
+  });
 }
