@@ -22,7 +22,7 @@
         <div class="option-container">
           <div class="toggle-container">
             <label class="switch">
-              <input type="checkbox" id="color" />
+              <input type="checkbox" id="color" class="toggle-btn" />
               <span class="slider round"></span>
             </label>
           </div>
@@ -47,7 +47,7 @@
         <div class="option-container">
           <div class="toggle-container">
             <label class="switch">
-              <input type="checkbox" id="background" />
+              <input type="checkbox" id="background" class="toggle-btn" />
               <span class="slider round"></span>
             </label>
           </div>
@@ -75,17 +75,19 @@
             </div>
           </div>
         </div>
+        <h3 class="whitelisted-site">This site is whitelisted</h3>
       </div>
       <div id="whitelist" class="hide">
         <div class="header">
-          <button id="btn-return" class="btn common-btn">&lt</button>
+          <button id="btn-return" class="btn common-btn">&lt Go Back</button>
         </div>
         <div>
           <div class="domain-input-area">
             <input type="text" id="domainInput" value="Enter a domain here" />
             <button class="btn add-domain-btn">Add</button>
           </div>
-          <h3>Whitelisted Sites</h3>
+          <h2 class="list-header">Whitelisted Sites</h2>
+          <hr />
           <ul id="whitelistedSitesList"></ul>
         </div>
       </div>

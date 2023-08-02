@@ -4,6 +4,10 @@ body {
   background-color: #f2f2f7;
   font-size: 0.8rem;
   border-radius: 50px;
+  margin: 0px;
+}
+#main-content {
+  margin: 8px;
 }
 
 .switch {
@@ -130,6 +134,7 @@ input:checked + .slider:before {
 .domain-input-area {
   display: flex;
   align-items: center;
+  margin: 0px 8px;
 }
 
 #domainInput {
@@ -160,27 +165,33 @@ input:checked + .slider:before {
   font-weight: 400;
   font-size: 1.2rem;
   height: 1.8rem;
+  margin: 0px 8px;
 }
 
-.remove-domain-btn {
-  cursor: pointer;
-  background-color: #f44336; /* Red background */
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 12px;
-  margin: 0;
-  transition-duration: 0.4s;
-  cursor: pointer;
-  border-radius: 2px;
+#btn-return {
+  margin-left: 8px;
+  margin-top: 8px;
+}
+
+#btn-show-whitelist {
+  margin-right: 0px;
 }
 
 .remove-btn {
   background-color: #ff3a30;
   margin-right: 0px;
+}
+
+.list-header {
+  margin: 0px 8px;
+}
+
+hr {
+  margin: 0px 8px;
+}
+
+.whitelisted-site {
+  text-align: center;
 }
 
 #whitelistedSitesList {
@@ -204,14 +215,12 @@ input:checked + .slider:before {
   border-radius: 10px;
 }
 
-/* The draggable scrolling handle */
 #whitelistedSitesList::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 10px;
   transition: background 0.3s;
 }
 
-/* On hover, change the color of the scrollbar thumb */
 #whitelistedSitesList:hover::-webkit-scrollbar-thumb {
   background: #555;
 }
@@ -258,4 +267,16 @@ input:checked + .slider:before {
 .animate .slider,
 .animate .slider:before {
   transition: 0.4s;
+}
+
+.disabled-text {
+  color: #8e8e93;
+}
+
+.disabled-background {
+  background-color: #8e8e93;
+}
+
+input:checked:disabled + .slider {
+  background-color: #8e8e93;
 }

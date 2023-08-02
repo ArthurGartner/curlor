@@ -1,120 +1,127 @@
-var options = ["color", "background", "colorHover", "backgroundHover"];
+function render() {
+  var options = ["color", "background", "colorHover", "backgroundHover"];
 
-document.addEventListener("DOMContentLoaded", function () {
-  const switches = document.querySelectorAll(".switch");
-  //Iterate through each item in options to add correct eventlistener
-  const promises = options.map(
-    (option) =>
-      new Promise((resolve) => {
-        document.getElementById(option).addEventListener("click", function () {
-          var toggleState = this.checked;
-          chrome.storage.local.set({ [option]: toggleState });
+  document.addEventListener("DOMContentLoaded", function () {
+    const switches = document.querySelectorAll(".switch");
+    //Iterate through each item in options to add correct eventlistener
+    const promises = options.map(
+      (option) =>
+        new Promise((resolve) => {
+          document
+            .getElementById(option)
+            .addEventListener("click", function () {
+              var toggleState = this.checked;
+              chrome.storage.local.set({ [option]: toggleState });
+            });
+
+          //Query chrome storage for state of current option. This allows for persistance
+          chrome.storage.local.get([option], function (data) {
+            const parent = document.getElementById(option);
+            parent.checked = data[option] || false;
+            const hoverId = option + "Hover";
+            var elem = document.getElementById(hoverId);
+            if (!parent.checked && elem != null) disableCheckbox(elem);
+            resolve(); // resolve the promise when done
+          });
+        })
+    );
+
+    //Added this to fix animated toggle swicth, animate class added after switches have event listeners added
+    Promise.all(promises).then(() => {
+      setTimeout(() => {
+        switches.forEach((switchElement) => {
+          switchElement.classList.add("animate"); // re-enable animations
         });
+      }, 500);
+    });
 
-        //Query chrome storage for state of current option. This allows for persistance
-        chrome.storage.local.get([option], function (data) {
-          const parent = document.getElementById(option);
-          parent.checked = data[option] || false;
-          const hoverId = option + "Hover";
-          var elem = document.getElementById(hoverId);
-          if (!parent.checked && elem != null) disableCheckbox(elem);
-          resolve(); // resolve the promise when done
-        });
-      })
-  );
+    const domainInput = document.getElementById("domainInput");
 
-  //Added this to fix animated toggle swicth, animate class added after switches have event listeners added
-  Promise.all(promises).then(() => {
-    setTimeout(() => {
-      switches.forEach((switchElement) => {
-        switchElement.classList.add("animate"); // re-enable animations
-      });
-    }, 500);
-  });
+    // Set the placeholder value
+    domainInput.placeholder = "Enter a domain here";
 
-  const domainInput = document.getElementById("domainInput");
+    // Get the current domain and populate the input
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const url = new URL(tabs[0].url);
+      const domain = url.hostname;
 
-  // Set the placeholder value
-  domainInput.placeholder = "Enter a domain here";
-
-  // Get the current domain and populate the input
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    const url = new URL(tabs[0].url);
-    const domain = url.hostname;
-
-    if (domain) {
-      domainInput.value = domain;
-    } else {
-      domainInput.value = "";
-    }
-  });
-
-  // Clear the placeholder text when input is focused
-  domainInput.addEventListener("focus", function () {
-    if (domainInput.value === "Enter a domain here") {
-      domainInput.value = "";
-    }
-  });
-
-  // Reset the placeholder text if the input is empty on blur
-  domainInput.addEventListener("blur", function () {
-    if (!domainInput.value.trim()) {
-      domainInput.value = "Enter a domain here";
-    }
-  });
-
-  var returnButton = document.getElementById("btn-return");
-  returnButton.addEventListener("click", function () {
-    hideWhitelist();
-  });
-
-  var whitelistButton = document.getElementById("btn-show-whitelist");
-  whitelistButton.addEventListener("click", function () {
-    showWhitelist();
-  });
-
-  const addButton = document.querySelector(".add-domain-btn");
-
-  addButton.addEventListener("click", function () {
-    const domain = domainInput.value;
-
-    // Ensure the domain is not an empty string before proceeding
-    if (domain.trim() === "") return;
-
-    // Get the current list of whitelisted sites
-    chrome.storage.local.get("whitelistedSites", function (result) {
-      let sites = result.whitelistedSites || [];
-
-      // Add the domain to the list if it's not already there
-      if (sites.indexOf(domain) === -1) {
-        sites.push(domain);
-      }
-
-      // Save the updated list back to Chrome's storage
-      chrome.storage.local.set({ whitelistedSites: sites }, function () {
-        // Clear the input box
+      if (domain) {
+        domainInput.value = domain;
+      } else {
         domainInput.value = "";
-      });
+      }
+    });
 
-      loadWhitelistedSites();
+    // Clear the placeholder text when input is focused
+    domainInput.addEventListener("focus", function () {
+      if (domainInput.value === "Enter a domain here") {
+        domainInput.value = "";
+      }
+    });
+
+    // Reset the placeholder text if the input is empty on blur
+    domainInput.addEventListener("blur", function () {
+      if (!domainInput.value.trim()) {
+        domainInput.value = "Enter a domain here";
+      }
+    });
+
+    var returnButton = document.getElementById("btn-return");
+    returnButton.addEventListener("click", function () {
+      hideWhitelist();
+      render();
+    });
+
+    var whitelistButton = document.getElementById("btn-show-whitelist");
+    whitelistButton.addEventListener("click", function () {
+      showWhitelist();
+    });
+
+    const addButton = document.querySelector(".add-domain-btn");
+
+    addButton.addEventListener("click", function () {
+      const domain = domainInput.value;
+
+      // Ensure the domain is not an empty string before proceeding
+      if (domain.trim() === "") return;
+
+      // Get the current list of whitelisted sites
+      chrome.storage.local.get("whitelistedSites", function (result) {
+        let sites = result.whitelistedSites || [];
+
+        // Add the domain to the list if it's not already there
+        if (sites.indexOf(domain) === -1) {
+          sites.push(domain);
+        }
+
+        // Save the updated list back to Chrome's storage
+        chrome.storage.local.set({ whitelistedSites: sites }, function () {
+          // Clear the input box
+          domainInput.value = "";
+        });
+
+        loadWhitelistedSites();
+      });
     });
   });
-});
 
-//Re-evaluate state of toggle upon local storage change
-chrome.storage.onChanged.addListener(function (changes, namespace) {
-  chrome.storage.local.get(["color"]).then((value) => {
-    const colorCheckbox = document.getElementById("colorHover");
-    if (value.color) enableCheckbox(colorCheckbox);
-    else disableCheckbox(colorCheckbox);
+  //Re-evaluate state of toggle upon local storage change
+  chrome.storage.onChanged.addListener(function (changes, namespace) {
+    chrome.storage.local.get(["color"]).then((value) => {
+      const colorCheckbox = document.getElementById("colorHover");
+      if (value.color) enableCheckbox(colorCheckbox);
+      else disableCheckbox(colorCheckbox);
+    });
+
+    chrome.storage.local.get(["background"]).then((value) => {
+      const backgroundCheckbox = document.getElementById("backgroundHover");
+      if (value.background) enableCheckbox(backgroundCheckbox);
+      else disableCheckbox(backgroundCheckbox);
+    });
   });
 
-  chrome.storage.local.get(["background"]).then((value) => {
-    const backgroundCheckbox = document.getElementById("backgroundHover");
-    if (value.background) enableCheckbox(backgroundCheckbox);
-    else disableCheckbox(backgroundCheckbox);
-  });
-});
+  mainViewDisableCheck();
+}
 
 // Disable checkbox, used for when parent switch is off
 function disableCheckbox(element) {
@@ -194,3 +201,57 @@ function removeSiteFromWhitelist(site) {
     });
   });
 }
+
+function extractDomain(url) {
+  let domain;
+  //find & remove protocol (http, ftp, etc.) and get domain
+  if (url.indexOf("://") > -1) {
+    domain = url.split("/")[2];
+  } else {
+    domain = url.split("/")[0];
+  }
+
+  //find & remove port number
+  domain = domain.split(":")[0];
+
+  return domain;
+}
+
+function mainViewDisableCheck() {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    const domain = extractDomain(tabs[0].url);
+    const toggleButtons = document.querySelectorAll(".toggle-btn");
+    const descriptions = document.querySelectorAll(".desc");
+    const labels = document.querySelectorAll(".label-desc");
+    const checkboxes = document.querySelectorAll(".hover-checkbox");
+    // Check if the domain is in the whitelist
+    chrome.storage.local.get(["whitelistedSites"], function (result) {
+      if (result.whitelistedSites && result.whitelistedSites.includes(domain)) {
+        toggleButtons.forEach((btn) => {
+          btn.disabled = true;
+        });
+        checkboxes.forEach((btn) => {
+          btn.disabled = true;
+        });
+        descriptions.forEach((desc) => {
+          desc.classList.add("disabled-text");
+        });
+        labels.forEach((label) => {
+          label.classList.add("disabled-text");
+        });
+      } else {
+        toggleButtons.forEach((btn) => {
+          btn.disabled = false;
+        });
+        descriptions.forEach((desc) => {
+          desc.classList.remove("disabled-text");
+        });
+        labels.forEach((label) => {
+          label.classList.remove("disabled-text");
+        });
+      }
+    });
+  });
+}
+
+render();
