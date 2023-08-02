@@ -33,33 +33,46 @@ function shouldProcessElement(element) {
     "meter",
   ];
 
+  //Ensure current element tag name is not included in list of tags to avoid
   if (avoidTags.includes(tagName)) return false;
 
+  //Get the styling of the current element
   const style = window.getComputedStyle(element);
+
+  //Determine whether element is visible
   const isHidden = style.visibility === "hidden" || style.display === "none";
+
+  //Return visibility result
   return !isHidden;
 }
 
+//Function to attain the current domain from the url
 function getDomainFromUrl(url) {
   const urlObject = new URL(url);
   return urlObject.hostname;
 }
 
+//Entry function of the extension, gets domain and checks if it is in the whitelist
 function runExtension() {
+  //Get th domain
   const currentDomain = getDomainFromUrl(window.location.href);
 
+  //Retrieve whitelist from Chrome local storage
   chrome.storage.local.get("whitelistedSites", function (result) {
+    //Get array result, if null then return just an empty array
     const whitelistedSites = result.whitelistedSites || [];
 
     // Check if current domain is not in the whitelist
     if (!whitelistedSites.includes(currentDomain)) {
+      //Run main function if domain is not found in the whitelist
       replaceVisibleColorValues();
     }
   });
 }
 
-// Function to manipulate DOM
+// Main function of extension to manipulate DOM
 function replaceVisibleColorValues() {
+  // This is the combined regex pattern for rgb, hsl and hex color values
   const hexrgbhslPattern =
     /#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\b|(rgb|hsl)\s*\(?\s*(\d{1,3})\s*,\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*\)?/g;
 
@@ -81,10 +94,17 @@ function replaceVisibleColorValues() {
       backgroundHoverValue = bgHoverValue;
       colorHoverValue = clrHoverValue;
 
+      //Continue while there are nodes to process
       while (nodesToProcess.length) {
+        //Proceed through array, remove and return first item in array
         const node = nodesToProcess.shift();
+
+        //Get the type of node
         const nodeType = node.nodeType;
+
+        //Ensure node is of type text, this is an int
         if (nodeType === Node.TEXT_NODE) {
+          //Get the style of the element node and ensure it is visible
           const parentStyle = window.getComputedStyle(node.parentElement);
           const isParentVisible =
             parentStyle &&
@@ -96,20 +116,25 @@ function replaceVisibleColorValues() {
             let offset = 0;
             let match;
 
+            //Iterate through all matches found in the content of the current node
             while ((match = hexrgbhslPattern.exec(content)) !== null) {
               var color = match[0];
 
+              //Check if match is an hsl value, if so it is processed differently
               if (isHSL(color)) {
                 color = convertHSLToHex(color);
               }
 
+              //Create span element, this is used to apply special classes and styling
               const spanTag = document.createElement("span");
               spanTag.className = "curlor";
               spanTag.textContent = color;
 
+              //Update index int for beginning of match and end of match
               const matchStart = match.index;
               const matchEnd = match.index + match[0].length;
 
+              //Create new text node for content before current match found in current node
               if (matchStart > offset) {
                 node.parentNode.insertBefore(
                   document.createTextNode(
@@ -119,6 +144,7 @@ function replaceVisibleColorValues() {
                 );
               }
 
+              //Check which settings are on in chrome storage and apply them appropriately
               if (backgroundValue.background || colorValue.color) {
                 if (backgroundValue.background) {
                   if (backgroundHoverValue.backgroundHover)
@@ -132,6 +158,7 @@ function replaceVisibleColorValues() {
                   else addTextColor(spanTag, color);
                 }
 
+                //Add the newly updated span tag to the DOM right after the previously generated new text node.
                 node.parentNode.insertBefore(spanTag, node);
               } else {
                 // If no color or background applied, just insert the text without the span
@@ -141,9 +168,11 @@ function replaceVisibleColorValues() {
                 );
               }
 
+              //Update offset so it is at the end of the last matched text index. This allows for further processing of content to the right if needed.
               offset = matchEnd;
             }
 
+            //Check if there is still text content remaining after the offset, if so add the remaining text content as bulk to new text node.
             if (offset < content.length) {
               node.parentNode.insertBefore(
                 document.createTextNode(content.substring(offset)),
@@ -151,26 +180,30 @@ function replaceVisibleColorValues() {
               );
             }
 
+            //The original node is removed. If additional processing is needed for the remaining content it will be processed as it is added to the array.
             node.parentNode.removeChild(node);
           }
         } else if (nodeType === Node.ELEMENT_NODE) {
-          // Your existing code to handle Element Nodes
+          // If one of the special styles has already been replyed, then just take raw text content and remove node with new styling. Add new node with raw text to array for iterative processing.
           if (node.tagName === "SPAN" && node.classList.contains("curlor")) {
             const textNode = document.createTextNode(node.textContent);
             node.parentNode.replaceChild(textNode, node);
             nodesToProcess.push(textNode); // Add the new textNode to the processing list
           } else {
+            //Standard processing if node does not already have special styling applied
             const style = window.getComputedStyle(node);
             const isHidden =
               style.visibility === "hidden" || style.display === "none";
 
             if (!isHidden) {
+              //Evaluate which nodes should be processed, then send for process check
               const childNodes = [...node.childNodes].filter((child) => {
                 return (
                   child.nodeType === Node.TEXT_NODE ||
                   shouldProcessElement(child)
                 );
               });
+              //Nodes that meet criteria are passed to the processing array.
               nodesToProcess.push(...childNodes);
             }
           }
@@ -185,14 +218,17 @@ function replaceVisibleColorValues() {
   }
 }
 
+//Adds the required styling for text color
 function addTextColor(element, color) {
   element.style.color = color;
 }
 
+//Adds the required styling for background color
 function addBackgroundColor(element, color) {
   element.style.backgroundColor = color;
 }
 
+//Adds the required styling to only show background color on cursor hover
 function addBackgroundColorOnHover(element, color) {
   const originalBackgroundColor =
     window.getComputedStyle(element).backgroundColor;
@@ -206,6 +242,7 @@ function addBackgroundColorOnHover(element, color) {
   });
 }
 
+//Adds the required styling to only show text color on cursor hover
 function addTextColorOnHover(element, color) {
   const originalTextColor = window.getComputedStyle(element).color;
 
@@ -233,6 +270,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
   }
 });
 
+//Convert hsl to rgb
 function hslToRgb(h, s, l) {
   let r, g, b;
 
@@ -296,4 +334,5 @@ function onEveryPageLoad() {
   runExtension();
 }
 
+//Event listener for optimization
 window.addEventListener("load", onEveryPageLoad);

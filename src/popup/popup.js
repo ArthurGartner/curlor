@@ -1,6 +1,9 @@
+//Main function to render extension side
 function render() {
+  //These option correspond to html element ids
   var options = ["color", "background", "colorHover", "backgroundHover"];
 
+  //Adding listeners to each input to establish click functionality
   document.addEventListener("DOMContentLoaded", function () {
     const switches = document.querySelectorAll(".switch");
     //Iterate through each item in options to add correct eventlistener
@@ -14,7 +17,7 @@ function render() {
               chrome.storage.local.set({ [option]: toggleState });
             });
 
-          //Query chrome storage for state of current option. This allows for persistance
+          //Query chrome storage for state of current option. This allows for persistance through browser uses
           chrome.storage.local.get([option], function (data) {
             const parent = document.getElementById(option);
             parent.checked = data[option] || false;
@@ -66,12 +69,14 @@ function render() {
       }
     });
 
+    //Setup of return button
     var returnButton = document.getElementById("btn-return");
     returnButton.addEventListener("click", function () {
       hideWhitelist();
       render();
     });
 
+    //Setup of show whitelist domains button
     var whitelistButton = document.getElementById("btn-show-whitelist");
     whitelistButton.addEventListener("click", function () {
       showWhitelist();
@@ -79,6 +84,7 @@ function render() {
 
     const addButton = document.querySelector(".add-domain-btn");
 
+    //Setup for button that adds content in text input box to whitelist array
     addButton.addEventListener("click", function () {
       const domain = domainInput.value;
 
@@ -100,6 +106,7 @@ function render() {
           domainInput.value = "";
         });
 
+        //Reload whitelist
         loadWhitelistedSites();
       });
     });
@@ -120,6 +127,7 @@ function render() {
     });
   });
 
+  //Run check to ensure that options are disabled if on whitelisted site
   mainViewDisableCheck();
 }
 
@@ -133,6 +141,7 @@ function enableCheckbox(element) {
   element.disabled = false;
 }
 
+//Shows whitelist view in popup html
 function showWhitelist() {
   const main = document.getElementById("main-content");
   const whitelist = document.getElementById("whitelist");
@@ -143,6 +152,7 @@ function showWhitelist() {
   whitelist.classList.remove("hide");
 }
 
+//Hides whitelist view in popup html
 function hideWhitelist() {
   const main = document.getElementById("main-content");
   const whitelist = document.getElementById("whitelist");
@@ -151,6 +161,7 @@ function hideWhitelist() {
   main.classList.remove("hide");
 }
 
+//Loads the list of whitelist sites from chrome storage
 function loadWhitelistedSites() {
   chrome.storage.local.get("whitelistedSites", function (result) {
     let sites = result.whitelistedSites || [];
@@ -187,6 +198,7 @@ function loadWhitelistedSites() {
   });
 }
 
+//Remove the specified domain from the whitelist within chrome storage and reload view
 function removeSiteFromWhitelist(site) {
   chrome.storage.local.get("whitelistedSites", function (result) {
     let sites = result.whitelistedSites || [];
@@ -205,6 +217,7 @@ function removeSiteFromWhitelist(site) {
   });
 }
 
+//Used to determine current domain
 function extractDomain(url) {
   let domain;
   //find & remove protocol (http, ftp, etc.) and get domain
@@ -220,6 +233,7 @@ function extractDomain(url) {
   return domain;
 }
 
+//Checks whether the toggles should be disabled if on a current whitelisted domain
 function mainViewDisableCheck() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     const domain = extractDomain(tabs[0].url);
@@ -258,6 +272,7 @@ function mainViewDisableCheck() {
   });
 }
 
+//Generates the html text showing the total count of whitelisted domains
 function updateWhitelistCount() {
   chrome.storage.local.get("whitelistedSites", function (result) {
     const whitelist = result.whitelist || [];
@@ -268,4 +283,5 @@ function updateWhitelistCount() {
   });
 }
 
+//Calling render function to run on load
 render();

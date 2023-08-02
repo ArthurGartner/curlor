@@ -13,15 +13,12 @@
   "action": {
     "default_popup": "popup/popup.html"
   },
-  "permissions": ["storage", "scripting", "tabs"],
+  "permissions": ["storage", "scripting", "activeTab"],
   "content_scripts": [
     {
       "js": ["scripts/content.js"],
       "matches": ["<all_urls>"],
       "run_at": "document_idle"
     }
-  ],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self';"
-  }
+  ]
 }
