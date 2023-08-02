@@ -153,33 +153,36 @@ function hideWhitelist() {
 
 function loadWhitelistedSites() {
   chrome.storage.local.get("whitelistedSites", function (result) {
-    chrome.storage.local.get("whitelistedSites", function (result) {
-      let sites = result.whitelistedSites || [];
-      const listContainer = document.getElementById("whitelistedSitesList");
+    let sites = result.whitelistedSites || [];
+    const count = sites.length;
 
-      // Clear any existing items first
-      listContainer.innerHTML = "";
+    document.getElementById("whitelist-site-count").innerText =
+      "Whitelisted Sites (" + count.toString() + ")";
 
-      sites.forEach((site) => {
-        const listItem = document.createElement("li");
+    const listContainer = document.getElementById("whitelistedSitesList");
 
-        // Create domain text node
-        const domainTextNode = document.createTextNode(site);
-        listItem.appendChild(domainTextNode);
+    // Clear any existing items first
+    listContainer.innerHTML = "";
 
-        // Create remove button
-        const removeButton = document.createElement("button");
-        removeButton.textContent = "Remove";
-        removeButton.addEventListener("click", function () {
-          // Remove the site from the storage and refresh the list
-          removeSiteFromWhitelist(site);
-        });
-        removeButton.classList.add("btn");
-        removeButton.classList.add("remove-btn");
+    sites.forEach((site) => {
+      const listItem = document.createElement("li");
 
-        listItem.appendChild(removeButton);
-        listContainer.appendChild(listItem);
+      // Create domain text node
+      const domainTextNode = document.createTextNode(site);
+      listItem.appendChild(domainTextNode);
+
+      // Create remove button
+      const removeButton = document.createElement("button");
+      removeButton.textContent = "Remove";
+      removeButton.addEventListener("click", function () {
+        // Remove the site from the storage and refresh the list
+        removeSiteFromWhitelist(site);
       });
+      removeButton.classList.add("btn");
+      removeButton.classList.add("remove-btn");
+
+      listItem.appendChild(removeButton);
+      listContainer.appendChild(listItem);
     });
   });
 }
@@ -239,6 +242,7 @@ function mainViewDisableCheck() {
         labels.forEach((label) => {
           label.classList.add("disabled-text");
         });
+        document.getElementById("whitelisted-site").classList.remove("hide");
       } else {
         toggleButtons.forEach((btn) => {
           btn.disabled = false;
@@ -251,6 +255,16 @@ function mainViewDisableCheck() {
         });
       }
     });
+  });
+}
+
+function updateWhitelistCount() {
+  chrome.storage.local.get("whitelistedSites", function (result) {
+    const whitelist = result.whitelist || [];
+    const count = whitelist.length;
+
+    document.getElementById("whitelist-site-count").innerText =
+      "Whitelisted Sites (" + count.toString() + ")";
   });
 }
 

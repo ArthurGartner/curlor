@@ -75,18 +75,26 @@
             </div>
           </div>
         </div>
-        <h3 class="whitelisted-site">This site is whitelisted</h3>
+        <h2 id="whitelisted-site" class="hide">This site is whitelisted</h2>
       </div>
       <div id="whitelist" class="hide">
         <div class="header">
-          <button id="btn-return" class="btn common-btn">&lt Go Back</button>
+          <button id="btn-return" class="btn common-btn">
+            <img
+              src="../resources/caret-left-icon.svg"
+              class="text-image-svg"
+            />
+            Go Back
+          </button>
         </div>
         <div>
           <div class="domain-input-area">
             <input type="text" id="domainInput" value="Enter a domain here" />
             <button class="btn add-domain-btn">Add</button>
           </div>
-          <h2 class="list-header">Whitelisted Sites</h2>
+          <h2 id="whitelist-site-count" class="list-header">
+            Whitelisted Sites
+          </h2>
           <hr />
           <ul id="whitelistedSitesList"></ul>
         </div>
