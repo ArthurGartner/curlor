@@ -180,7 +180,10 @@ function loadWhitelistedSites() {
 
       // Create domain text node
       const domainTextNode = document.createTextNode(site);
-      listItem.appendChild(domainTextNode);
+      const textDiv = document.createElement("div");
+      textDiv.appendChild(domainTextNode);
+      textDiv.classList.add("domain-item");
+      listItem.appendChild(textDiv);
 
       // Create remove button
       const removeButton = document.createElement("button");

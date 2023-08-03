@@ -131,6 +131,15 @@ input:checked + .slider:before {
   margin-right: 0px;
 }
 
+.domain-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 30px);
+  display: block;
+  padding-right: 5px;
+}
+
 .domain-input-area {
   display: flex;
   align-items: center;
